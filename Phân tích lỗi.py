@@ -43,10 +43,9 @@ def get_unique_tags(filepath):
 
 ##
 
-all_words_true, all_tag_true = load_dataset(r'/NLP/NER/NER_Error_analysis/test_true_phobert.txt')
-unique_tags = get_unique_tags(r'/NLP/NER/NER_Error_analysis/test_true_phobert.txt')
-all_words_pred, all_tags_pred = load_dataset(r'/NLP/NER/NER_Error_analysis/test_predictions_phobert_base.txt')
-
+all_words_true, all_tag_true = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_phobert.txt')
+unique_tags = get_unique_tags(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_phobert.txt')
+all_words_pred, all_tags_pred = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_predictions_phobert_base.txt')
 
 ##
 
@@ -216,6 +215,10 @@ class ErrorTypesGold:
                         self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
                     else:
                         self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))
+                        print(raw_tag_true)
+                        print(raw_tag_pred)
+                        print(raw_words)
+                        print('--------------------------------------')
 
                 else:
                     if len([tag for tag in raw_tag_pred if 'B-' in tag]) != 1:
@@ -224,6 +227,10 @@ class ErrorTypesGold:
 
                         else:
                             self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))
+                            print(raw_tag_true)
+                            print(raw_tag_pred)
+                            print(raw_words)
+                            print('--------------------------------------')
 
                     # self.result['No Extraction'].append((raw_tag_true, raw_tag_pred, raw_words))
 
@@ -321,6 +328,10 @@ class ErrorTypesPredicted:
                         self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
                     else:
                         self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))
+                        print(raw_tag_true)
+                        print(raw_tag_pred)
+                        print(raw_words)
+                        print('--------------------------------------')
                 else:
                     self.result['No annotation'].append((raw_tag_true, raw_tag_pred, raw_words))
 
@@ -337,7 +348,7 @@ df.reset_index(drop=True, inplace=True)
 df.reset_index(inplace=True)
 df.rename(columns={'index': 'Row'}, inplace=True)
 df = pd.concat([df, pd.DataFrame(data={'Sentence': all_words_true})], axis=1)
-df.to_csv('NLP/NER/NER_Error_analysis/df_error_types_PhoBERT_gold.csv', index=False)
+# df.to_csv('NLP/NER/NER_Error_analysis/df_error_types_PhoBERT_gold.csv', index=False)
 
 # print summary
 for column in df.columns:
