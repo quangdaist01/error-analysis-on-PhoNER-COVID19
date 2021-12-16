@@ -1,3 +1,14 @@
+colors = {
+    'DATE': '#EA2F86',  # https://www.schemecolor.com/bright-rainbow-gradient.php
+    'GENDER': '#F09C0A',
+    'JOB': '#FAE000',
+    'LOCATION': '#93E223',
+    'NAME': '#4070D3',
+    'O': '#7B7D70',  # màu gray ở https://www.schemecolor.com/rural-stay.php
+    'ORGANIZATION': '#493C9E',
+    'PATIENT_ID': '#ED3D07',  # màu đỏ https://www.schemecolor.com/bright-summer-beach.php
+    'SYMPTOM_AND_DISEASE': '#F2E8D8',  # https://www.schemecolor.com/pastels-for-men.php
+    'TRANSPORTATION': '#C4A69B'}
 
 
 def load_dataset(filepath):
