@@ -18,11 +18,12 @@ def convert_string_to_list(cell):
     return ast.literal_eval(cell)
 
 
-def count_tag_in_cell(cell):
-    return len([tag for tag in cell if tag == PICK_A_GOLD_TAG])
-
-
 def get_indexes_of_filtered_errors(ERROR_TYPE_DF_PATH, PICK_AN_ERROR_INDEX, PICK_A_GOLD_TAG):
+    def count_tag_in_cell(cell):
+        if PICK_A_GOLD_TAG == None:
+            len([tag for tag in cell])
+        return len([tag for tag in cell if tag == PICK_A_GOLD_TAG])
+
     df3 = pd.read_csv(ERROR_TYPE_DF_PATH)
     df3 = df3.iloc[:, :-1]
 
@@ -42,4 +43,3 @@ def get_indexes_of_filtered_errors(ERROR_TYPE_DF_PATH, PICK_AN_ERROR_INDEX, PICK
 # get_indexes_of_filtered_errors(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Output\df_error_types_PhoBERT_gold.csv',
 #                                PICK_AN_ERROR_INDEX,
 #                                PICK_A_GOLD_TAG)
-
