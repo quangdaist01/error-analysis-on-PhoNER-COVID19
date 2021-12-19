@@ -23,6 +23,10 @@ def load_dataset(filepath):
             words.append(line.split()[0])
             tag.append(line.split()[1])
 
+    if words:
+        all_sentences.append(words)
+        all_tags.append(tag)
+
     return all_sentences, all_tags
 
 
@@ -45,7 +49,8 @@ def get_unique_tags(filepath):
 
 all_words_true, all_tag_true = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_phobert.txt')
 unique_tags = get_unique_tags(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_phobert.txt')
-all_words_pred, all_tags_pred = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_predictions_phobert_base.txt')
+all_words_pred, all_tags_pred = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_predictions_phobert.txt')
+
 
 ##
 
@@ -99,17 +104,6 @@ def get_words_in_a(span, sentence_sample):
     words = sentence_sample[start: end]
     words = ' '.join(words)
     return words
-
-
-##
-
-error_type = {1: 'No Extraction', 2: 'No annotation', 3: 'Wrong Tag', 4: 'Wrong Range', 5: 'Wrong Range and Tag'}
-PICK_AN_ERROR_TYPE = 1
-
-tag_NOT_ANNOTATED = None
-tag_NOT_EXTRACTED = None
-tag_TRUE = None
-tag_PRED = None
 
 
 ##
@@ -201,6 +195,12 @@ class ErrorTypesGold:
                 if tags_pred != tags_true:
                     self.result['Wrong Tag'].append((raw_tag_true, raw_tag_pred, raw_words))
 
+                    if 'O' in raw_tag_pred:
+                        print(raw_tag_true)
+                        print(raw_tag_pred)
+                        print(raw_words)
+                        print('--------------------------------------')
+
                 else:
                     self.result['Num correct tags'].append((raw_tag_true, raw_tag_pred, raw_words))
             else:
@@ -214,11 +214,7 @@ class ErrorTypesGold:
                     elif tags_true[0] in tags_pred and len([tag for tag in raw_tag_pred if 'B-' in tag]) != 1:
                         self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
                     else:
-                        self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))
-                        print(raw_tag_true)
-                        print(raw_tag_pred)
-                        print(raw_words)
-                        print('--------------------------------------')
+                        self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))  # print(raw_tag_true)  # print(raw_tag_pred)  # print(raw_words)  # print('--------------------------------------')
 
                 else:
                     if len([tag for tag in raw_tag_pred if 'B-' in tag]) != 1:
@@ -226,12 +222,9 @@ class ErrorTypesGold:
                             self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
 
                         else:
-                            self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))
-                            print(raw_tag_true)
-                            print(raw_tag_pred)
-                            print(raw_words)
-                            print('--------------------------------------')
-
+                            self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))  # print(raw_tag_true)  # print(raw_tag_pred)  # print(raw_words)  # print('--------------------------------------')
+                    else:
+                        self.result['Num correct tags'].append((raw_tag_true, raw_tag_pred, raw_words))
                     # self.result['No Extraction'].append((raw_tag_true, raw_tag_pred, raw_words))
 
         return self
@@ -348,7 +341,7 @@ df.reset_index(drop=True, inplace=True)
 df.reset_index(inplace=True)
 df.rename(columns={'index': 'Row'}, inplace=True)
 df = pd.concat([df, pd.DataFrame(data={'Sentence': all_words_true})], axis=1)
-# df.to_csv('NLP/NER/NER_Error_analysis/df_error_types_PhoBERT_gold.csv', index=False)
+df.to_csv('NLP/NER/NER_Error_analysis/Output/df_error_types_phobert_gold.csv', index=False)
 
 # print summary
 for column in df.columns:
@@ -396,7 +389,7 @@ for tag in unique_tags:
     num_errors.append(df2[df2['Tag'] == tag].iloc[:, 1:-1].sum().sum())
 df2 = pd.concat([pd.DataFrame(data={'Errors': num_errors}), df2], axis=1)
 
-# Tạo cột Total
+# tạo cột total
 totals = []
 for tag in unique_tags:
     totals.append(df2[df2['Tag'] == tag].iloc[:, 2:].sum().sum())
@@ -410,6 +403,32 @@ total_row = df2.sum(axis=0).to_dict()
 total_row['Tag'] = 'Total'
 df2 = pd.concat([df2, pd.DataFrame(total_row, index=[0])])
 
-df2.to_csv('NLP/NER/NER_Error_analysis/df_error_types_PhoBERT_gold_summary.csv', index=False)
+df2.to_csv('NLP/NER/NER_Error_analysis/Output/df_error_types_phobert_gold_summary.csv', index=False)
 ##
 df2[df2['Tag'] == 'LOCATION'].iloc[:, 1:].sum().sum()
+
+## check uneven sentences
+for i, sentence in enumerate(all_words_pred):
+    if sentence not in all_words_true:
+        print(i)
+        print(sentence)
+        for k, other_sentence in enumerate(all_words_true):
+            if other_sentence in sentence:
+                print('Bingo')
+
+num_words_true = sum(len(sentence) for sentence in all_words_true)
+num_words_true_last_sentence = len(all_words_true[-1])
+num_words_pred = sum(len(sentence) for sentence in all_words_pred)
+print(num_words_true, num_words_pred, num_words_true_last_sentence)
+
+for i in range(2997, 2999):
+    sentence_true = ' '.join(all_words_true[i])
+    sentence_pred = ' '.join(all_words_pred[i])
+    print(sentence_true)
+    print(sentence_pred)
+
+##
+
+
+##
+
