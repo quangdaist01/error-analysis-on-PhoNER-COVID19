@@ -194,21 +194,14 @@ class ErrorTypesGold:
             if self._is_correct_range(span):
                 if tags_pred != tags_true:
                     self.result['Wrong Tag'].append((raw_tag_true, raw_tag_pred, raw_words))
-
-                    if 'O' in raw_tag_pred:
-                        print(raw_tag_true)
-                        print(raw_tag_pred)
-                        print(raw_words)
-                        print('--------------------------------------')
-
+                elif tags_pred == ['O'] * len(tags_pred):
+                    self.result['No Extraction'].append((raw_tag_true, raw_tag_pred, raw_words))
                 else:
                     self.result['Num correct tags'].append((raw_tag_true, raw_tag_pred, raw_words))
             else:
                 if self._is_overlap(span):
-                    # if tags_pred == tags_true:
                     if tags_pred == ['O'] * len(tags_pred):
                         self.result['No Extraction'].append((raw_tag_true, raw_tag_pred, raw_words))
-
                     elif tags_true[0] in tags_pred and 'O' in tags_pred:
                         self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
                     elif tags_true[0] in tags_pred and len([tag for tag in raw_tag_pred if 'B-' in tag]) != 1:
@@ -220,12 +213,10 @@ class ErrorTypesGold:
                     if len([tag for tag in raw_tag_pred if 'B-' in tag]) != 1:
                         if tags_true[0] in tags_pred:
                             self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
-
                         else:
                             self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))  # print(raw_tag_true)  # print(raw_tag_pred)  # print(raw_words)  # print('--------------------------------------')
                     else:
                         self.result['Num correct tags'].append((raw_tag_true, raw_tag_pred, raw_words))
-                    # self.result['No Extraction'].append((raw_tag_true, raw_tag_pred, raw_words))
 
         return self
 
@@ -321,10 +312,6 @@ class ErrorTypesPredicted:
                         self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
                     else:
                         self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))
-                        print(raw_tag_true)
-                        print(raw_tag_pred)
-                        print(raw_words)
-                        print('--------------------------------------')
                 else:
                     self.result['No annotation'].append((raw_tag_true, raw_tag_pred, raw_words))
 
@@ -431,4 +418,3 @@ for i in range(2997, 2999):
 
 
 ##
-
