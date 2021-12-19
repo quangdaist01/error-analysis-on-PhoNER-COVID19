@@ -51,61 +51,6 @@ all_words_true, all_tag_true = load_dataset(r'C:\Users\quang\PycharmProjects\DL_
 unique_tags = get_unique_tags(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_phobert.txt')
 all_words_pred, all_tags_pred = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_predictions_phobert.txt')
 
-
-##
-
-def get_span_of(sentence_tags):
-    entities = []
-    single_entity = []
-
-    for i, tag in enumerate(sentence_tags):
-        if 'I-' in tag:
-            single_entity.append(i)
-        elif single_entity:
-            if tag == 'O':
-                entities.append(single_entity)
-                single_entity = []
-            elif 'B-' in tag:
-                entities.append(single_entity)
-                single_entity = [i]
-        elif 'B-' in tag:
-            single_entity.append(i)
-    if single_entity:
-        entities.append(single_entity)
-
-    empty_spans = []
-    empty_span = []
-
-    for i, tag in enumerate(sentence_tags):
-        if not empty_span and tag == 'O':
-            empty_span.append(i)
-        elif not any(x in tag for x in ['B-', 'I-']):
-            empty_span.append(i)
-        elif empty_span and any(x in tag for x in ['B-', 'I-']):
-
-            empty_spans.append(empty_span)
-            empty_span = []
-    if empty_span:
-        empty_spans.append(empty_span)
-
-    return entities, empty_spans
-
-
-def get_tags_in_a(span, tag_sample):
-    start, end = span[0], span[-1] + 1
-    tags = tag_sample[start: end]
-    tags = list(set(word.replace('B-', '').replace('I-', '') for word in tags))
-
-    return tags
-
-
-def get_words_in_a(span, sentence_sample):
-    start, end = span[0], span[-1] + 1
-    words = sentence_sample[start: end]
-    words = ' '.join(words)
-    return words
-
-
 ##
 class ErrorTypesGold:
     def __init__(self, tags_true, tags_pred, words_true, words_pred):
@@ -389,32 +334,3 @@ df2 = df2[['Tag', 'Total', 'Errors', 'No Extraction', 'Wrong Tag', 'Wrong Range'
 total_row = df2.sum(axis=0).to_dict()
 total_row['Tag'] = 'Total'
 df2 = pd.concat([df2, pd.DataFrame(total_row, index=[0])])
-
-df2.to_csv('NLP/NER/NER_Error_analysis/Output/df_error_types_phobert_gold_summary.csv', index=False)
-##
-df2[df2['Tag'] == 'LOCATION'].iloc[:, 1:].sum().sum()
-
-## check uneven sentences
-for i, sentence in enumerate(all_words_pred):
-    if sentence not in all_words_true:
-        print(i)
-        print(sentence)
-        for k, other_sentence in enumerate(all_words_true):
-            if other_sentence in sentence:
-                print('Bingo')
-
-num_words_true = sum(len(sentence) for sentence in all_words_true)
-num_words_true_last_sentence = len(all_words_true[-1])
-num_words_pred = sum(len(sentence) for sentence in all_words_pred)
-print(num_words_true, num_words_pred, num_words_true_last_sentence)
-
-for i in range(2997, 2999):
-    sentence_true = ' '.join(all_words_true[i])
-    sentence_pred = ' '.join(all_words_pred[i])
-    print(sentence_true)
-    print(sentence_pred)
-
-##
-
-
-##
