@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 
 def load_dataset(filepath):
@@ -46,15 +45,9 @@ def get_unique_tags(filepath):
 
 
 ##
-
-all_words_true, all_tag_true = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_phobert.txt')
-unique_tags = get_unique_tags(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_phobert.txt')
-all_words_pred, all_tags_pred = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_predictions_phobert.txt')
-
-##
 class ErrorTypesGold:
     def __init__(self, tags_true, tags_pred, words_true, words_pred):
-        self.result = {'No Extraction': [], 'Wrong Tag': [], 'Wrong Range': [], 'Wrong Range and tag': [], 'Num correct tags': []}
+        self.result = {'No Extraction': [], 'No Annotation': [], 'Wrong Tag': [], 'Wrong Range': [], 'Wrong Range and tag': [], 'Num correct tags': []}
         self.tags_true = tags_true
         self.tags_pred = tags_pred
         self.words_true = words_true
@@ -119,11 +112,16 @@ class ErrorTypesGold:
     def _is_correct_range(self, span):
         return span in self.spans_tags_pred
 
-    def _is_overlap(self, span):
+    def _is_overlap(self, span, with_O_spans_tags_true=False):
 
-        for that_span in self.spans_tags_pred:
-            if len([bound for bound in span if bound in that_span]) == len(span):
-                return False
+        if not with_O_spans_tags_true:
+            for that_span in self.spans_tags_pred:
+                if len([bound for bound in span if bound in that_span]) == len(span):
+                    return False
+        else:
+            for that_span in self.spans_O_tags_true:
+                if len([bound for bound in span if bound in that_span]) == len(span):
+                    return False
 
         return True
 
@@ -134,6 +132,8 @@ class ErrorTypesGold:
             tags_true = self._get_tags_true_in(span)
             raw_tag_true = self.tags_true[start: end]
             raw_tag_pred = self.tags_pred[start: end]
+            raw_tag_true_to_end= self.tags_true[start:]
+            raw_tag_pred_to_end = self.tags_pred[start:]
             raw_words = self.words_true[start: end]
 
             if self._is_correct_range(span):
@@ -145,101 +145,36 @@ class ErrorTypesGold:
                     self.result['Num correct tags'].append((raw_tag_true, raw_tag_pred, raw_words))
             else:
                 if self._is_overlap(span):
-                    if tags_pred == ['O'] * len(tags_pred):
+                    if raw_tag_pred == ['O'] * len(raw_tag_pred):
                         self.result['No Extraction'].append((raw_tag_true, raw_tag_pred, raw_words))
-                    elif tags_true[0] in tags_pred and 'O' in tags_pred:
-                        self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
-                    elif tags_true[0] in tags_pred and len([tag for tag in raw_tag_pred if 'B-' in tag]) != 1:
-                        self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
+                    elif tags_true[0] in tags_pred:
+                        if 'O' in tags_pred:
+                            self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
+                        elif len([tag for tag in raw_tag_pred if 'B-' in tag]) != 1:
+                            self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
+                        elif len(raw_tag_pred) >= end + 1 and 'I-' in raw_tag_pred[end]:
+                            self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
+
                     else:
-                        self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))  # print(raw_tag_true)  # print(raw_tag_pred)  # print(raw_words)  # print('--------------------------------------')
+                        self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))
+                        # print(raw_tag_true, raw_tag_pred, raw_words, sep='\n')
+                        # print(raw_tag_true_to_end)
+                        # print(raw_tag_pred_to_end)
+                        # print('---------------')
 
                 else:
                     if len([tag for tag in raw_tag_pred if 'B-' in tag]) != 1:
                         if tags_true[0] in tags_pred:
                             self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
                         else:
-                            self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))  # print(raw_tag_true)  # print(raw_tag_pred)  # print(raw_words)  # print('--------------------------------------')
+                            self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))
+                            # print(raw_tag_true, raw_tag_pred, raw_words, sep='\n')
+                            # print(raw_tag_true_to_end)
+                            # print(raw_tag_pred_to_end)
+                            # print('---------------')
                     else:
                         self.result['Num correct tags'].append((raw_tag_true, raw_tag_pred, raw_words))
 
-        return self
-
-
-class ErrorTypesPredicted:
-    def __init__(self, tags_true, tags_pred, words_true, words_pred):
-        self.result = {'No annotation': [], 'Wrong Tag': [], 'Wrong Range': [], 'Wrong Range and tag': []}
-        self.tags_true = tags_true
-        self.tags_pred = tags_pred
-        self.words_true = words_true
-        self.words_pred = words_pred
-        self.spans_tags_true, self.spans_O_tags_true = self._get_span_of(tags_true)
-        self.spans_tags_pred, _ = self._get_span_of(tags_pred)
-
-    def _get_span_of(self, tags):
-        entities = []
-        single_entity = []
-
-        for i, tag in enumerate(tags):
-            if 'I-' in tag:
-                single_entity.append(i)
-            elif single_entity:
-                if tag == 'O':
-                    entities.append(single_entity)
-                    single_entity = []
-                elif 'B-' in tag:
-                    entities.append(single_entity)
-                    single_entity = [i]
-            elif 'B-' in tag:
-                single_entity.append(i)
-        if single_entity:
-            entities.append(single_entity)
-
-        empty_spans = []
-        empty_span = []
-
-        for i, tag in enumerate(tags):
-            if not empty_span and tag == 'O':
-                empty_span.append(i)
-            elif not any(x in tag for x in ['B-', 'I-']):
-                empty_span.append(i)
-            elif empty_span and any(x in tag for x in ['B-', 'I-']):
-
-                empty_spans.append(empty_span)
-                empty_span = []
-        if empty_span:
-            empty_spans.append(empty_span)
-
-        return entities, empty_spans
-
-    def _get_tags_true_in(self, span):
-        start, end = span[0], span[-1] + 1
-        tags = self.tags_true[start: end]
-        tags = list(set(word.replace('B-', '').replace('I-', '') for word in tags))
-        return tags
-
-    def _get_tags_pred_in(self, span):
-        start, end = span[0], span[-1] + 1
-        tags = self.tags_pred[start: end]
-        tags = list(set(word.replace('B-', '').replace('I-', '') for word in tags))
-        return tags
-
-    def _is_correct_range(self, span):
-        return span in self.spans_tags_true
-
-    def _is_overlap(self, span):
-
-        for that_span in self.spans_tags_true:
-            if len([bound for bound in span if bound in that_span]) == len(span):
-                return False
-
-        for that_span in self.spans_O_tags_true:
-            if len([bound for bound in span if bound in that_span]) == len(span):
-                return False
-
-        return True
-
-    def check(self):
         for span in self.spans_tags_pred:
             start, end = span[0], span[-1] + 1
             tags_pred = self._get_tags_pred_in(span)
@@ -247,22 +182,19 @@ class ErrorTypesPredicted:
             raw_tag_true = self.tags_true[start: end]
             raw_tag_pred = self.tags_pred[start: end]
             raw_words = self.words_true[start: end]
+            if not self._is_overlap(span, with_O_spans_tags_true=True):
+                self.result['No Annotation'].append((raw_tag_true, raw_tag_pred, raw_words))
 
-            if self._is_correct_range(span):
-                if tags_pred != tags_true:
-                    self.result['Wrong Tag'].append((raw_tag_true, raw_tag_pred, raw_words))
-            else:
-                if self._is_overlap(span):
-                    if tags_pred == tags_true:
-                        self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
-                    else:
-                        self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))
-                else:
-                    self.result['No annotation'].append((raw_tag_true, raw_tag_pred, raw_words))
+        return self
 
 
 ##
-errors = ['No Extraction', 'Wrong Tag', 'Wrong Range', 'Wrong Range and tag', 'Num correct tags']
+
+all_words_true, all_tag_true = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_phobert.txt')
+unique_tags = get_unique_tags(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_phobert.txt')
+all_words_pred, all_tags_pred = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_predictions_phobert.txt')
+
+errors = ['No Extraction', 'No Annotation', 'Wrong Range', 'Wrong Tag', 'Wrong Range and tag', 'Num correct tags']
 df = pd.DataFrame(columns=errors)
 
 for i, (tags_true, tags_pred, words_true, words_pred) in enumerate(zip(all_tag_true, all_tags_pred, all_words_true, all_words_pred)):
@@ -300,7 +232,7 @@ for error in errors:
 
 ##
 # Tao df moi
-unique_tags = ['PATIENT_ID', 'NAME', 'AGE', 'GENDER', 'JOB', 'LOCATION', 'ORGANIZATION', 'SYMPTOM_AND_DISEASE', 'TRANSPORTATION', 'DATE']
+unique_tags = ['PATIENT_ID', 'NAME', 'AGE', 'GENDER', 'JOB', 'LOCATION', 'ORGANIZATION', 'SYMPTOM_AND_DISEASE', 'TRANSPORTATION', 'DATE', 'O']
 
 df2 = pd.DataFrame(columns=errors)
 for tag in unique_tags:
@@ -328,9 +260,13 @@ for tag in unique_tags:
 df2 = pd.concat([pd.DataFrame(data={'Total': totals}), df2], axis=1)
 
 # Sắp xếp lại
-df2 = df2[['Tag', 'Total', 'Errors', 'No Extraction', 'Wrong Tag', 'Wrong Range', 'Wrong Range and tag']]
+df2 = df2[['Tag', 'Total', 'Errors', 'No Extraction', 'No Annotation', 'Wrong Range', 'Wrong Tag', 'Wrong Range and tag']]
 
 # Tạo hàng Total
 total_row = df2.sum(axis=0).to_dict()
 total_row['Tag'] = 'Total'
 df2 = pd.concat([df2, pd.DataFrame(total_row, index=[0])])
+
+df2.to_csv('NLP/NER/NER_Error_analysis/Output/df_error_types_phobert_gold_summary.csv', index=False)  ##
+
+##
