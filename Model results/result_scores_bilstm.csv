@@ -1,0 +1,6 @@
+﻿model,batch size,test_f1
+CNN-BiLSTM-CRF syllable 100dim,1,0.931
+CNN-BiLSTM-CRF syllable 300dim,1,0.93
+CNN-BiLSTM-CRF word 100dim,1,0.93
+CNN-BiLSTM-CRF word 300dim,1,0.927
+CNN-BiLSTM-CRF,36,0.906
