@@ -132,7 +132,7 @@ class ErrorTypesGold:
             tags_true = self._get_tags_true_in(span)
             raw_tag_true = self.tags_true[start: end]
             raw_tag_pred = self.tags_pred[start: end]
-            raw_tag_true_to_end= self.tags_true[start:]
+            raw_tag_true_to_end = self.tags_true[start:]
             raw_tag_pred_to_end = self.tags_pred[start:]
             raw_words = self.words_true[start: end]
 
@@ -156,22 +156,14 @@ class ErrorTypesGold:
                             self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
 
                     else:
-                        self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))
-                        # print(raw_tag_true, raw_tag_pred, raw_words, sep='\n')
-                        # print(raw_tag_true_to_end)
-                        # print(raw_tag_pred_to_end)
-                        # print('---------------')
+                        self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))  # print(raw_tag_true, raw_tag_pred, raw_words, sep='\n')  # print(raw_tag_true_to_end)  # print(raw_tag_pred_to_end)  # print('---------------')
 
                 else:
                     if len([tag for tag in raw_tag_pred if 'B-' in tag]) != 1:
                         if tags_true[0] in tags_pred:
                             self.result['Wrong Range'].append((raw_tag_true, raw_tag_pred, raw_words))
                         else:
-                            self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))
-                            # print(raw_tag_true, raw_tag_pred, raw_words, sep='\n')
-                            # print(raw_tag_true_to_end)
-                            # print(raw_tag_pred_to_end)
-                            # print('---------------')
+                            self.result['Wrong Range and tag'].append((raw_tag_true, raw_tag_pred, raw_words))  # print(raw_tag_true, raw_tag_pred, raw_words, sep='\n')  # print(raw_tag_true_to_end)  # print(raw_tag_pred_to_end)  # print('---------------')
                     else:
                         self.result['Num correct tags'].append((raw_tag_true, raw_tag_pred, raw_words))
 
@@ -190,14 +182,14 @@ class ErrorTypesGold:
 
 ##
 
-all_words_true, all_tag_true = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_phobert.txt')
-unique_tags = get_unique_tags(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_phobert.txt')
-all_words_pred, all_tags_pred = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_predictions_phobert.txt')
+all_words_true, all_tags_true = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_bilstm.txt')
+unique_tags = get_unique_tags(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_true_bilstm.txt')
+all_words_pred, all_tags_pred = load_dataset(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Model results\test_predictions_bilstm.txt')
 
 errors = ['No Extraction', 'No Annotation', 'Wrong Range', 'Wrong Tag', 'Wrong Range and tag', 'Num correct tags']
 df = pd.DataFrame(columns=errors)
 
-for i, (tags_true, tags_pred, words_true, words_pred) in enumerate(zip(all_tag_true, all_tags_pred, all_words_true, all_words_pred)):
+for i, (tags_true, tags_pred, words_true, words_pred) in enumerate(zip(all_tags_true, all_tags_pred, all_words_true, all_words_pred)):
     error_types = ErrorTypesGold(tags_true, tags_pred, words_true, words_pred).check()
     df = pd.concat([df, pd.DataFrame([error_types.result])])
 
@@ -205,7 +197,7 @@ df.reset_index(drop=True, inplace=True)
 df.reset_index(inplace=True)
 df.rename(columns={'index': 'Row'}, inplace=True)
 df = pd.concat([df, pd.DataFrame(data={'Sentence': all_words_true})], axis=1)
-df.to_csv('NLP/NER/NER_Error_analysis/Output/df_error_types_phobert_gold.csv', index=False)
+df.to_csv('NLP/NER/NER_Error_analysis/Output/df_error_types_bilstm_gold.csv', index=False)
 
 # print summary
 for column in df.columns:
@@ -267,6 +259,6 @@ total_row = df2.sum(axis=0).to_dict()
 total_row['Tag'] = 'Total'
 df2 = pd.concat([df2, pd.DataFrame(total_row, index=[0])])
 
-df2.to_csv('NLP/NER/NER_Error_analysis/Output/df_error_types_phobert_gold_summary.csv', index=False)  ##
+df2.to_csv('NLP/NER/NER_Error_analysis/Output/df_error_types_bilstm_gold_summary_for_no_ann.csv', index=False)  ##
 
 ##

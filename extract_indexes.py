@@ -1,7 +1,7 @@
 import ast
 import pandas as pd
 
-errors = ['No Extraction', 'Wrong Tag', 'Wrong Range', 'Wrong Range and tag', 'Num correct tags']
+errors = ['No Extraction', 'No Annotation', 'Wrong Tag', 'Wrong Range', 'Wrong Range and tag', 'Num correct tags']
 PICK_AN_ERROR_INDEX = 0  # 0 means No Extraction and so on.
 PICK_A_GOLD_TAG = 'LOCATION'  # Set to None to view all tags
 
@@ -38,8 +38,3 @@ def get_indexes_of_filtered_errors(ERROR_TYPE_DF_PATH, PICK_AN_ERROR_INDEX, PICK
         if row['Error Counts'] != 0:
             indexes.append(i)
     return indexes
-
-##
-# get_indexes_of_filtered_errors(r'C:\Users\quang\PycharmProjects\DL_NLP_TUH\NLP\NER\NER_Error_analysis\Output\df_error_types_PhoBERT_gold.csv',
-#                                PICK_AN_ERROR_INDEX,
-#                                PICK_A_GOLD_TAG)
