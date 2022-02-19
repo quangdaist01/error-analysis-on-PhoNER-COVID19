@@ -1,50 +1,7 @@
 import pandas as pd
+from utils import load_dataset, get_unique_tags, convert_cell_to_tag
 
 
-def load_dataset(filepath):
-    with open(filepath, encoding='utf8') as f:
-        lines = []
-        for line in f:
-            lines.append(line.replace('\n', ''))
-
-    all_sentences = []
-    all_tags = []
-
-    words = []
-    tag = []
-    for line in lines:
-        if len(line.split()) < 2:
-            all_sentences.append(words)
-            all_tags.append(tag)
-            words = []
-            tag = []
-        else:
-            words.append(line.split()[0])
-            tag.append(line.split()[1])
-
-    if words:
-        all_sentences.append(words)
-        all_tags.append(tag)
-
-    return all_sentences, all_tags
-
-
-def get_unique_tags(filepath):
-    with open(filepath, encoding='utf8') as f:
-        lines = []
-        for line in f:
-            lines.append(line.replace('\n', ''))
-
-    all_tags = set()
-    for line in lines:
-        if len(line.split()) == 2:
-            tag = line.split()[1].replace('B-', '').replace('I-', '')
-            all_tags.add(tag)
-
-    return list(all_tags)
-
-
-##
 class ErrorTypesGold:
     def __init__(self, tags_true, tags_pred, words_true, words_pred):
         self.result = {'No Extraction': [], 'No Annotation': [], 'Wrong Tag': [], 'Wrong Range': [], 'Wrong Range and tag': [], 'Num correct tags': []}
@@ -208,16 +165,6 @@ for column in df.columns:
 
 ##
 df_new = df.iloc[:, :-1].copy()
-
-
-# Chuyen list of tuples ve list of string
-def convert_cell_to_tag(cell):
-    tags = []
-    for my_tuple in cell:
-        tag = list(set(word.replace('B-', '').replace('I-', '') for word in my_tuple[0]))
-        tags.append(tag[0])
-    return tags
-
 
 for error in errors:
     df_new[error] = df_new[error].map(convert_cell_to_tag)
